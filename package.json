@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./bin/run.js"
+    "start": "node ./bin/run.js",
+    "dev": "nodemon bin/run.js"
   },
   "keywords": [],
   "author": "Shadrach Temitayo <shadrachtemitayo@gmail.com>",
@@ -12,6 +13,7 @@
   "dependencies": {
     "@slack/client": "^4.8.0",
     "dotenv": "^6.2.0",
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "superagent": "^4.1.0"
   }
 }

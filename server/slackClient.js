@@ -1,9 +1,12 @@
 "use strict";
 const { RTMClient } = require("@slack/client");
 let rtm = null;
-function init(token, loglevel) {
+let nlp = null;
+
+function init(token, loglevel, nlpClient) {
   // The client is initialized and then started to get an active connection to the platform
   rtm = new RTMClient(token, { loglevel });
+  nlp = nlpClient;
   rtm.on("authenticated", handleOnAuthenticated);
   rtm.on("message", handleOnMessage);
   return rtm;
@@ -17,9 +20,37 @@ function handleOnAuthenticated(connectData) {
   );
 }
 
-function handleOnMessage(event) {
-  console.log(`new message: ${event.text}`);
-  rtm.sendMessage("this is a test message", `${event.channel}`);
+function handleOnMessage(message) {
+  console.log(JSON.stringify(message));
+  if (message.text.toLowerCase().includes("iris")) {
+    nlp.ask(message.text, (err, res) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+
+      try {
+        if (!res.intent || !res.intent[0] || !res.intent[0].value)
+          throw new Error("Could not extract intent");
+
+        const intent = require(`./intents/${res.intent[0].value}Intent`);
+        intent.process(res, (err, response) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+
+          rtm.sendMessage(response, message.channel);
+        });
+      } catch (error) {
+        console.log(error);
+        rtm.sendMessage(
+          "Sorry I don't know what you are talking about",
+          message.channel
+        );
+      }
+    });
+  }
 }
 
 function addAuthenticatedHandler(rtm, handler) {
