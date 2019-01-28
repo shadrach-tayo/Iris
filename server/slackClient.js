@@ -2,11 +2,13 @@
 const { RTMClient } = require("@slack/client");
 let rtm = null;
 let nlp = null;
+let registry = null;
 
-function init(token, loglevel, nlpClient) {
+function init(token, loglevel, nlpClient, serviceRegistry) {
   // The client is initialized and then started to get an active connection to the platform
   rtm = new RTMClient(token, { loglevel });
   nlp = nlpClient;
+  registry = serviceRegistry;
   rtm.on("authenticated", handleOnAuthenticated);
   rtm.on("message", handleOnMessage);
   return rtm;
@@ -21,7 +23,6 @@ function handleOnAuthenticated(connectData) {
 }
 
 function handleOnMessage(message) {
-  console.log(JSON.stringify(message));
   if (message.text.toLowerCase().includes("iris")) {
     nlp.ask(message.text, (err, res) => {
       if (err) {
@@ -32,9 +33,8 @@ function handleOnMessage(message) {
       try {
         if (!res.intent || !res.intent[0] || !res.intent[0].value)
           throw new Error("Could not extract intent");
-
         const intent = require(`./intents/${res.intent[0].value}Intent`);
-        intent.process(res, (err, response) => {
+        intent.process(res, registry, (err, response) => {
           if (err) {
             console.log(err);
             return;
