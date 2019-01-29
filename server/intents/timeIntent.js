@@ -14,6 +14,7 @@ function process(intentData, registry, cb) {
   const location = intentData.location[0].value;
 
   const service = registry.get("time");
+
   if (!service) {
     return cb(false, "No time service Available");
   }

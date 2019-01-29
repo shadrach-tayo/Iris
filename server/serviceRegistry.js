@@ -35,10 +35,11 @@ module.exports = class ServiceRegistry {
 
   get(intent) {
     this._cleanUp();
+    let service = null;
     this._services.forEach((value, _) => {
-      if (value.intent == intent) return value;
+      if (value.intent == intent) return (service = value);
     });
-    return null;
+    return service;
   }
 
   _cleanUp() {
